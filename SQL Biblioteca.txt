@@ -1,0 +1,198 @@
+-- Criar banco de dados a usar nas aulas para teste
+CREATE DATABASE db_Biblioteca ON PRIMARY
+(NAME = db_Biblioteca,
+FILENAME = 'C:\SQL\db_Biblioteca.mdf',
+SIZE = 6MB,
+MAXSIZE = 15MB,
+FILEGROWTH = 10%)
+LOG ON (
+NAME = db_biblioteca_log,
+FILENAME = 'C:\SQL\db_Biblioteca_log.ldf',
+SIZE = 1MB, FILEGROWTH = 1MB)
+GO
+
+
+-- Consultar os bancos existentes no servidor 
+SELECT name
+FROM master.sys.databases
+ORDER BY name;
+
+-- Outra forma: com procedimento armazernado interno 
+EXEC sp_databases;
+
+-- Escolher o banco padrão a usar: declaração USER 
+USE db_Biblioteca;
+
+-- Verificar dados extras sobre o banco de dados
+EXEC sp_helpdb db_biblioteca;
+
+-- Comentário de uma linha 
+/* Comentário
+de
+múltiplas
+linhas 
+*/ 
+
+
+-- Criar tabelas no banco db_biblioteca 
+
+-- Tabela de autores 
+CREATE TABLE Autor (
+IdAutor SMALLINT IDENTITY,
+NomeAutor VARCHAR (30) NOT NULL,
+SobrenomeAutor VARCHAR(60) NOT NULL,
+CONSTRAINT pk_id_autor PRIMARY KEY (IdAutor)
+);
+
+-- Verificar se a tabelas foi criada corretamente 
+EXEC sp_help Autor;
+
+-- Tabela de editores
+CREATE TABLE Editora (
+IdEditora SMALLINT PRIMARY KEY IDENTITY,
+NomeEditora VARCHAR(50) NOT NULL
+);
+
+
+-- Verificar se a tabela foi criada corretamente
+EXEC sp_help Editora;
+
+-- Tabela de Assuntos
+CREATE TABLE Assunto (
+IdAssunto TINYINT PRIMARY KEY IDENTITY,
+NomeAssunto VARCHAR(30) NOT NULL
+);
+
+-- Verificar se a tabela foi criada corretamente 
+EXEC sp_help Assunto;
+
+
+-- Tabela de Livros
+CREATE TABLE LIVRO (
+IdLivro SMALLINT PRIMARY KEY IDENTITY(100,1),
+NomeLivro VARCHAR(70) NOT NULL,
+ISBN13 CHAR(13) UNIQUE,
+DataPub DATE,
+PrecoLivro MONEY NOT NULL,
+NumeroPaginas SMALLINT NOT NULL,
+IdEditora SMALLINT NOT NULL,
+idAssunto TINYINT NOT NULL,
+CONSTRAINT fk_id_editora FOREIGN KEY (IdEditora) REFERENCES Editora (IdEditora) ON DELETE CASCADE ON UPDATE CASCADE,
+CONSTRAINT fk_id_assunto FOREIGN KEY (IdAssunto) REFERENCES Assunto (IdAssunto) ON DELETE CASCADE ON UPDATE CASCADE,
+CONSTRAINT verifica_preco CHECK (PrecoLivro >= 0)
+);
+
+-- Verificar se a tabela foi criada corretamente 
+EXEC sp_help Livro;
+
+
+-- Criar Tabela LivroAutor 
+CREATE TABLE LivroAutor (
+IdLivro SMALLINT NOT NULL,
+IdAutor SMALLINT NOT NULL,
+CONSTRAINT pk_id_livro_autor PRIMARY KEY (IdLivro, IdAutor),
+CONSTRAINT fk__id_livros FOREIGN KEY (IdLivro) REFERENCES Livro (IdLivro) ON DELETE CASCADE ON UPDATE CASCADE,
+CONSTRAINT fk_id_autores FOREIGN KEY (IdAutor) REFERENCES Autor (IdAutor) ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+-- Verificar se a tabela foi criada corretamente 
+EXEC sp_help LivroAutor;
+
+-- Verificar tabelas criadas.
+SELECT name FROM db_Biblioteca.sys.tables;
+
+
+
+-- INSERIR REGISTROS NAS TABELAS
+/*
+Declaração INSERT INTO
+
+Sintaxe:
+INSERT INTO tabela (coluna1, coluna2, ...)
+VALUES (valor1, valor2, ...);
+*/
+
+
+-- Exemplo : cadastrar uma editora 
+
+INSERT INTO Editora (NomeEditora)
+VALUES ('Prentice Hall');
+
+-- Verificar se linha foi inserida na tabela:
+SELECT * FROM Editora;
+
+-- Cadastrar várias editoras de uma vez 
+INSERT INTO Editora (NomeEditora)
+VALUES
+('O´Reilly'), ('Aleph'), ('Microsoft Press'), ('Wiley'), ('HarperCollins'), ('Érica'), ('Novatec'), ('McGraw-Hill'), ('Apress'), ('Francisco Alvez'),
+('Sybex'), ('Globo'), ('Companhia das Letras'), ('Morro Branco'), ('Penguin Boks'), ('Martin Claret'), ('Record'), ('Springer'), ('Melhoramentos'), 
+('Oxford'), ('Taschen'), ('Ediouro'), ('Bookman');
+
+-- Verificar se linha foi inserida na tabela:
+SELECT * FROM Editora;
+
+-- Cadastrar os assuntos 
+INSERT INTO Assunto (NomeAssunto)
+VALUES
+('Ficção Científica'), ('Botânica'),
+('Eletrônica'), ('Matemática'),
+('Aventura'), ('Romance'),
+('Finanças'), ('Gastronomia'),
+('Terror'), ('Administração'),
+('Informática'), ('Suspense');
+
+
+-- Verificar se linha foi inserida na tabela:
+SELECT * FROM Assunto;
+
+
+-- Cadastrar um autor 
+INSERT INTO Autor (NomeAutor, SobrenomeAutor)
+VALUES ('Umberto','Eco');
+
+INSERT INTO Autor (NomeAutor, SobrenomeAutor)
+VALUES
+('Daniel', 'Barret'), ('Gerald', 'Carter'), ('Mark', 'Sobell'),
+('William', 'Stanek'), ('Chistine', 'Bresnahan'), ('William', 'Gibson'),
+('James', 'Joyce'), ('John', 'Emsley'), ('José', 'Saramago'),
+('Richard', 'Silverman'), ('Robert', 'Byrnes'), ('Jay', 'Ts'),
+('Robert', 'Eckstein'), ('Paul', 'Horowitz'), ('Winfield', 'Hill'),
+('Joel', 'Murach'), ('Paul', 'Scherz'), ('Simon', 'Monk'),
+('Napoleon', 'Hill'), ('Ítalo', 'Calvino'), ('Machado', 'de Assis'),
+('Oliver','Sacks'), ('Ray', 'Bradbury'), ('Walter', 'Isaacson'),
+('Benjamin', 'Graham'), ('Júlio', 'Verne'), ('Marcelo', 'Gleiser'),
+('Harri', 'Lorenzi'), ('Humphrey', 'Carpenter'), ('Isaac', 'Asimov'),
+('Aldous', 'Huxley'), ('Arthur', 'Conan Doyle'), ('Blaise', 'Pascal'),
+('Jostein', 'Gaarder'), ('Stephen', 'Hamking'), ('Stephen', 'Jay Gould'),
+('Neil', 'De Grasse Tyson'), ('Charles', 'Darwin'),
+('Alan', 'Turing'), ('Arthur', 'C. Clarke');
+
+-- Verificar se linha foi inserida na tabela:
+SELECT * FROM Autor;
+
+--Tabela de livros 
+INSERT INTO Livro (NomeLivro, ISBN13, DataPub, PrecoLivro, NumeroPaginas, idAssunto, IdEditora)
+VALUES ('A Arte da Eletrônica', '9788582604342', '20170308', 176.71, 1160, 3, 24);
+
+SELECT * FROM Livro;
+
+INSERT INTO Livro (NomeLivro, ISBN13, DataPub, PrecoLivro, NumeroPaginas, idAssunto, IdEditora)
+VALUES
+('Vinte Mil Léguas Submarinas', '9788525404179', '18700101', 24.50, 448,1,11),
+('O Investidor Inteligente', '9788580410669', '19440101', 79.90, 450, 7, 6);
+
+-- Verificar livros cadastrados 
+SELECT * FROM Livro;
+
+-- Inserir dados em lote 
+INSERT INTO Livro (NomeLivro, ISBN13, DataPub, PrecoLivro, NumeroPaginas, IdEditora, idAssunto)
+SELECT 
+	NomeLivro, ISBN13, DataPub, PrecoLivro, NumeroPaginas, IdEditora, IdAssunto
+FROM OPENROWSET(
+BULK 'C:\SQL\Livros.CSV',
+FORMATFILE = 'C:\SQL\Formato.xml',
+CODEPAGE = '65001', --UTF-8
+FIRSTROW = 2
+) AS LivrosCSV;
+
+
